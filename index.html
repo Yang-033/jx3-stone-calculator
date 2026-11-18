@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五行石精炼计算器 · 奶花皇帝·小羊</title>
+<style>
+  :root{
+    --bg:#f7f5fb;
+    --panel:#ffffff;
+    --line:#e9e4f2;
+    --line-soft:#f1edf8;
+    --text:#3a3547;
+    --text-2:#6f6880;
+    --text-3:#a49db5;
+    --accent:#9b8ac4;
+    --accent-2:#7d6ba8;
+    --accent-bg:#f5f2fc;
+    --accent-line:#ded5f0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; padding:36px 20px 56px;
+    background:linear-gradient(180deg,#fbfafd 0%, #f2eef8 100%) fixed, #f7f5fb;
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:14px;
+  }
+  .app{max-width:1060px;margin:0 auto;}
+
+  header{text-align:center;margin-bottom:24px;}
+  h1{font-size:22px;font-weight:600;letter-spacing:5px;margin:0 0 9px;color:#4a4360;}
+  .sub{margin:0 0 8px;font-size:12px;letter-spacing:2px;color:var(--text-3);}
+  .sign{margin:0;font-size:12px;letter-spacing:1px;color:var(--accent-2);}
+
+  /* ---------- 公式条 ---------- */
+  .formulas{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+    margin-bottom:20px;
+  }
+  @media(max-width:720px){.formulas{grid-template-columns:1fr;}}
+  .formula{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    box-shadow:0 4px 16px rgba(120,100,170,.04);
+  }
+  .formula .tag{
+    display:inline-block;font-size:10px;letter-spacing:1px;
+    color:var(--accent-2);background:var(--accent-bg);
+    border:1px solid var(--accent-line);
+    padding:2px 8px;border-radius:999px;margin-bottom:9px;
+  }
+  .formula .eq{
+    font-size:13px;color:var(--text);line-height:1.7;
+    font-variant-numeric:tabular-nums;
+  }
+  .formula .eq b{color:var(--accent-2);font-weight:600;}
+  .formula .eq small{display:block;margin-top:4px;font-size:11px;color:var(--text-3);}
+
+  /* ---------- 布局 ---------- */
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start;}
+  @media(max-width:860px){.layout{grid-template-columns:1fr;}}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+    box-shadow:0 6px 24px rgba(120,100,170,.05);
+  }
+  h2{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--text-2);margin:0 0 16px;}
+
+  /* ---------- 输入 ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid label{display:block;font-size:11px;color:var(--text-3);letter-spacing:.5px;}
+  .grid label.span2{grid-column:span 2;}
+  .grid input{
+    width:100%;margin-top:5px;padding:9px 10px;
+    font-size:13px;color:var(--text);
+    background:#fbfaff;
+    border:1px solid var(--line);
+    border-radius:8px;outline:none;
+    font-variant-numeric:tabular-nums;
+    transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  .grid input::placeholder{color:#c9c3d8;}
+  .grid input:focus{
+    background:#fff;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(155,138,196,.15);
+  }
+  .divider{
+    grid-column:span 2;
+    display:flex;align-items:center;gap:10px;
+    font-size:11px;color:var(--text-3);letter-spacing:1px;
+    margin:4px 0;
+  }
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .reset{
+    margin-top:18px;width:100%;padding:9px;cursor:pointer;
+    font-size:12px;letter-spacing:2px;color:var(--text-2);
+    background:var(--accent-bg);border:1px solid var(--accent-line);
+    border-radius:8px;transition:.15s;
+  }
+  .reset:hover{color:var(--accent-2);border-color:var(--accent);}
+
+  /* ---------- 结果 ---------- */
+  .result{display:flex;flex-direction:column;gap:14px;}
+
+  .big{
+    display:flex;align-items:baseline;gap:10px;
+    padding:18px 20px;
+    background:var(--accent-bg);
+    border:1px solid var(--accent-line);
+    border-radius:12px;
+  }
+  .big-k{font-size:11px;letter-spacing:2px;color:var(--text-3);}
+  .big-v{font-size:36px;font-weight:600;line-height:1;color:var(--accent-2);font-variant-numeric:tabular-nums;}
+  .big-u{font-size:12px;color:var(--text-2);}
+
+  .row{display:grid;gap:10px;}
+  .row-3{grid-template-columns:repeat(3,1fr);}
+  .row-2{grid-template-columns:repeat(2,1fr);}
+  @media(max-width:560px){.row-3,.row-2{grid-template-columns:1fr;}}
+
+  .card{
+    background:#fcfbff;
+    border:1px solid var(--line-soft);
+    border-radius:10px;
+    padding:14px 15px;
+  }
+  .card .k{font-size:11px;color:var(--text-3);letter-spacing:1px;margin-bottom:9px;}
+  .card .k em{font-style:normal;color:#c2bbd3;margin-left:6px;font-size:10px;}
+  .card .v{font-size:19px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.2;}
+  .card .v small{font-size:11px;font-weight:400;color:var(--text-3);margin-left:3px;}
+  .card .uses{margin-top:10px;display:flex;flex-wrap:wrap;gap:5px 14px;}
+  .card .uses span{font-size:11px;color:var(--text-3);}
+  .card .uses b{font-weight:500;color:var(--text-2);font-variant-numeric:tabular-nums;}
+
+  .card.hl{background:var(--accent-bg);border-color:var(--accent-line);}
+  .card.hl .v{color:var(--accent-2);}
+
+  .remain{
+    padding:14px 16px;
+    background:#faf8fe;
+    border:1px dashed var(--accent-line);
+    border-radius:10px;
+    font-size:12px;color:var(--text-3);
+    display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center;
+  }
+  .remain .title{color:var(--text-2);letter-spacing:1px;}
+  .remain b{font-weight:500;color:var(--text);font-variant-numeric:tabular-nums;}
+
+  .note{font-size:11px;line-height:1.8;color:var(--text-3);margin:0;padding-left:2px;}
+  .note.warn{color:#c08a7c;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>五行石精炼计算器</h1>
+    <p class="sub">剑网三 · 六级五行石最优合成规划</p>
+    <p class="sign">by 奶花皇帝 · 小羊</p>
+  </header>
+
+  <!-- ========== 合成公式 ========== -->
+  <div class="formulas">
+    <div class="formula">
+      <span class="tag">三级合成</span>
+      <div class="eq"><b>13</b> 个一级 → <b>1</b> 个三级
+        <small>1个一级 + 12个一级</small>
+      </div>
+    </div>
+    <div class="formula">
+      <span class="tag">四级合成</span>
+      <div class="eq"><b>3</b> 个三级 + <b>7</b> 个一级 → <b>1</b> 个四级
+        <small>1个三级 + 2个三级 + 7个一级</small>
+      </div>
+    </div>
+    <div class="formula">
+      <span class="tag">六级合成</span>
+      <div class="eq"><b>11</b> 个四级 + <b>6</b> 个三级 → <b>1</b> 个六级
+        <small>1个四级 + 10个四级 + 6个三级</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ========== 输入 ========== -->
+    <section class="panel">
+      <h2>材料与参数</h2>
+      <div class="grid">
+        <label>一级五行石
+          <input id="n1" type="number" min="0" placeholder="请输入">
+        </label>
+        <label>三级五行石
+          <input id="n3" type="number" min="0" placeholder="请输入">
+        </label>
+        <label>四级五行石
+          <input id="n4" type="number" min="0" placeholder="请输入">
+        </label>
+        <label>额外补购黯淡石
+          <input id="extra" type="number" min="0" placeholder="可选">
+        </label>
+
+        <div class="divider">价格与消耗</div>
+
+        <label>黯淡石单价（金）
+          <input id="price" type="number" min="0" step="0.01" placeholder="0.75">
+        </label>
+        <label>单次合成精力
+          <input id="energy" type="number" min="0" placeholder="10">
+        </label>
+        <label>三级加工费（金）
+          <input id="c3" type="number" min="0" step="0.0001" placeholder="0.36">
+        </label>
+        <label>四级加工费（金）
+          <input id="c4" type="number" min="0" step="0.0001" placeholder="1.4421">
+        </label>
+        <label class="span2">六级加工费（金）
+          <input id="c6" type="number" min="0" step="0.0001" placeholder="19.9066">
+        </label>
+      </div>
+      <button class="reset" id="reset">清空全部</button>
+    </section>
+
+    <!-- ========== 输出 ========== -->
+    <section class="panel result">
+      <h2>计算结果</h2>
+
+      <div class="big">
+        <span class="big-k">最大产出</span>
+        <span class="big-v" id="outZ">—</span>
+        <span class="big-u">颗六级五行石</span>
+      </div>
+
+      <div class="row row-3" id="steps"></div>
+      <div class="row row-2" id="totals"></div>
+      <div class="row row-2" id="details"></div>
+      <div class="remain" id="remain"></div>
+      <p class="note" id="note"></p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const fmt = (n, d = 0) => Number(n).toLocaleString('zh-CN', {
+    minimumFractionDigits: d, maximumFractionDigits: d
+  });
+  const num = id => {
+    const v = parseFloat($(id).value);
+    return isNaN(v) || v < 0 ? 0 : v;
+  };
+  const isBlank = id => $(id).value.trim() === '';
+  const DASH = '—';
+
+  function compute() {
+    const n1    = num('n1');
+    const n3    = num('n3');
+    const n4    = num('n4');
+    const extra = num('extra');
+    const price = num('price');
+    const en    = num('energy');
+    const c3    = num('c3');
+    const c4    = num('c4');
+    const c6    = num('c6');
+
+    const hasInput = !isBlank('n1') || !isBlank('n3') || !isBlank('n4') || !isBlank('extra');
+
+    if (!hasInput) {
+      $('outZ').textContent = DASH;
+      $('steps').innerHTML   = stepCards(null);
+      $('totals').innerHTML  = totalCards(null);
+      $('details').innerHTML = detailCards(null);
+      $('remain').innerHTML  = `<span class="title">剩余石头</span><span>请先填写材料数量</span>`;
+      const note = $('note');
+      note.className = 'note';
+      note.textContent = '在左侧填写各级五行石数量后，这里会自动显示最优合成方案。';
+      return;
+    }
+
+    /* 可用一级 = 库存一级 + 额外补购黯淡石 */
+    const usable1 = n1 + extra;
+
+    /* ---- 枚举 z：取最小 x / y ---- */
+    let best = { z: 0, x: 0, y: 0, need1: 0 };
+    for (let z = 1; z <= 9999; z++) {
+      const y = Math.max(0, 11 * z - n4);
+      const x = Math.max(0, 3 * y + 6 * z - n3);
+      const need1 = 13 * x + 7 * y;
+      if (need1 > usable1) break;
+      best = { z, x, y, need1 };
+    }
+
+    const { z, x, y, need1 } = best;
+
+    /* ---- 金钱：库存一级免费，差额才买黯淡石 ---- */
+    const freeUsed = Math.min(need1, n1);       // 从库存一级中使用（免费）
+    const bought   = Math.max(0, need1 - n1);   // 需要额外购买的黯淡石
+    const buyCost  = bought * price;
+    const procCost = x * c3 + y * c4 + z * c6;
+    const total    = buyCost + procCost;
+    const totEn    = (x + y + z) * en;
+
+    const rem1   = Math.max(0, n1 - need1);     // 一级库存剩余
+    const rem3   = n3 + x - 3 * y - 6 * z;
+    const rem4   = n4 + y - 11 * z;
+    const remBuy = Math.max(0, extra - bought); // 补购额度剩余
+
+    $('outZ').textContent = z;
+
+    const data = { z, x, y, need1, freeUsed, bought, buyCost, procCost, total, totEn, rem1, rem3, rem4, remBuy };
+
+    $('steps').innerHTML   = stepCards(data);
+    $('totals').innerHTML  = totalCards(data);
+    $('details').innerHTML = detailCards(data);
+
+    let remainHtml = `
+      <span class="title">剩余石头</span>
+      <span>一级 <b>${fmt(rem1)}</b></span>
+      <span>三级 <b>${fmt(rem3)}</b></span>
+      <span>四级 <b>${fmt(rem4)}</b></span>`;
+    if (extra > 0) {
+      remainHtml += `<span>补购额度剩余 <b>${fmt(remBuy)}</b></span>`;
+    }
+    $('remain').innerHTML = remainHtml;
+
+    const note = $('note');
+    if (z === 0) {
+      note.className = 'note warn';
+      note.textContent = '当前材料不足以合成任何一颗六级五行石，请补充材料或检查输入。';
+    } else {
+      note.className = 'note';
+      let msg = `已达成最大产出：${z} 颗六级五行石。`;
+      if (bought > 0) {
+        msg += `消耗库存一级 ${fmt(freeUsed)} 个（免费），额外购买黯淡石 ${fmt(bought)} 个。`;
+      } else {
+        msg += `一级库存充足，黯淡石无需额外购买。`;
+      }
+      note.textContent = msg;
+    }
+  }
+
+  function stepCards(d) {
+    const steps = [
+      { k:'第一次合成', e:'一级 → 三级', v: d ? d.x : null, u:'次',
+        uses:[['一级', d ? 13 * d.x : null]] },
+      { k:'第二次合成', e:'三级 → 四级', v: d ? d.y : null, u:'次',
+        uses:[['三级', d ? 3 * d.y : null], ['一级', d ? 7 * d.y : null]] },
+      { k:'第三次合成', e:'六级', v: d ? d.z : null, u:'次',
+        uses:[['四级', d ? 11 * d.z : null], ['三级', d ? 6 * d.z : null]] }
+    ];
+    return steps.map(s => `
+      <div class="card">
+        <div class="k">${s.k}<em>${s.e}</em></div>
+        <div class="v">${d ? fmt(s.v) : DASH}<small>${s.u}</small></div>
+        <div class="uses">
+          ${s.uses.map(u => `<span>${u[0]} × <b>${d ? fmt(u[1]) : DASH}</b></span>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function totalCards(d) {
+    const totals = [
+      { k:'总金钱消耗', v: d ? fmt(d.total, 2) : null, u:'金', hl:true },
+      { k:'总精力消耗', v: d ? fmt(d.totEn)   : null, u:'点' }
+    ];
+    return totals.map(t => `
+      <div class="card ${t.hl ? 'hl' : ''}">
+        <div class="k">${t.k}</div>
+        <div class="v">${d ? t.v : DASH}<small>${t.u}</small></div>
+      </div>`).join('');
+  }
+
+  function detailCards(d) {
+    const details = [
+      { k:'黯淡石购买',
+        v: d ? fmt(d.bought) : null, u:'个',
+        uses: d ? [['花费', fmt(d.buyCost, 2) + ' 金']] : [] },
+      { k:'合成加工费',
+        v: d ? fmt(d.procCost, 2) : null, u:'金',
+        uses: [] }
+    ];
+    return details.map(x => `
+      <div class="card">
+        <div class="k">${x.k}</div>
+        <div class="v">${d ? x.v : DASH}<small>${x.u}</small></div>
+        ${x.uses.length ? `<div class="uses">${x.uses.map(u => `<span>${u[0]} <b>${u[1]}</b></span>`).join('')}</div>` : ''}
+      </div>`).join('');
+  }
+
+  ['n1','n3','n4','extra','price','energy','c3','c4','c6'].forEach(id => {
+    $(id).addEventListener('input', compute);
+  });
+
+  $('reset').addEventListener('click', () => {
+    ['n1','n3','n4','extra','price','energy','c3','c4','c6'].forEach(id => { $(id).value = ''; });
+    compute();
+  });
+
+  compute();
+})();
+</script>
+</body>
+</html>
